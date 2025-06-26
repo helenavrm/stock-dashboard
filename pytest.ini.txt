@@ -1,0 +1,3 @@
+[pytest]
+# Ensure pytest always adds the project root to sys.path
+python_paths = .
