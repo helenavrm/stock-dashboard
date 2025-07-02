@@ -140,8 +140,8 @@ if stock_file is not None:
         # ───────────────────────────────────────────────────────────────
         current_date = datetime.now().date()
         yesterday_date = current_date - timedelta(days=1)
-        current_date_str = current_date.strftime("%B %d, %Y")  # e.g., "June 24, 2025"
-        yesterday_date_str = yesterday_date.strftime("%B %d, %Y")  # e.g., "June 23, 2025"
+        current_date_str = current_date.strftime("%B %d, %Y")  # e.g., "July 2, 2025"
+        yesterday_date_str = yesterday_date.strftime("%B %d, %Y")  # e.g., "July 1, 2025"
         st.markdown(
             f"""
             <div style="display:flex; gap:20px; margin-bottom:20px; flex-wrap: wrap;">
@@ -236,9 +236,9 @@ if stock_file is not None:
                                 df = categories.get(df_key, pd.DataFrame())
                                 if not df.empty:
                                     st.markdown(f"**{category} FG Codes**")
-                                    df_status = df[["Product", "Material Description", "Available Qty", "Stock Type", "GR Date"]].copy()
+                                    df_status = df[["Product", "Material Description", "Available Qty", "Handling Unit", "Stock Type", "GR Date"]].copy()
                                     df_status = df_status.sort_values("GR Date", ascending=False)
-                                    df_status.columns = ["FG Code", "Material Description", "Quantity", "Stock Type", "GR Date"]
+                                    df_status.columns = ["FG Code", "Material Description", "Quantity", "Handling Number", "Stock Type", "GR Date"]
                                     st.dataframe(df_status, use_container_width=True)
                                 else:
                                     st.write(f"No {category} FG codes in {warehouse} for {stock_type} stock.")
