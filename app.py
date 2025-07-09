@@ -72,6 +72,10 @@ st.markdown(
       .stDataFrame {
         font-size: 0.9em;
       }
+      /* Red background for alert */
+      .alert-red {
+        background-color: #ffcccc !important;
+      }
     </style>
     """,
     unsafe_allow_html=True
@@ -136,32 +140,73 @@ if stock_file is not None:
         st.success("✅ Data loaded successfully")
 
         # ───────────────────────────────────────────────────────────────
-        # KPI HEADER BAR: Current, Yesterday's, and Previous Stock for CHKO and CHKI
+        # KPI HEADER BAR: Total CROD, then CHKO and CHKI with Current, Yesterday's, Previous Stock, and Unrestricted FGs
         # ───────────────────────────────────────────────────────────────
         current_date = datetime.now().date()
         yesterday_date = current_date - timedelta(days=1)
-        current_date_str = current_date.strftime("%B %d, %Y")  # e.g., "July 2, 2025"
-        yesterday_date_str = yesterday_date.strftime("%B %d, %Y")  # e.g., "July 1, 2025"
+        current_date_str = current_date.strftime("%B %d, %Y")  # e.g., "July 8, 2025"
+        yesterday_date_str = yesterday_date.strftime("%B %d, %Y")  # e.g., "July 7, 2025"
+
+        # Calculate total CROD stock
+        total_current = stock_summary["CHKO"]["current"] + stock_summary["CHKI"]["current"]
+        total_yesterday = stock_summary["CHKO"]["yesterday"] + stock_summary["CHKI"]["yesterday"]
+        total_previous = stock_summary["CHKO"]["previous"] + stock_summary["CHKI"]["previous"]
+
+        # Calculate total unrestricted FG quantities for CHKO and CHKI (current + yesterday)
+        chko_unrestricted_total = stock_summary["CHKO"]["current_unrestricted"] + stock_summary["CHKO"]["yesterday_unrestricted"]
+        chki_unrestricted_total = stock_summary["CHKI"]["current_unrestricted"] + stock_summary["CHKI"]["yesterday_unrestricted"]
+
+        # Determine if total CROD section should be red
+        alert_class = "alert-red" if (chko_unrestricted_total > 2000 or chki_unrestricted_total > 1500) else ""
+
         st.markdown(
             f"""
-            <div style="display:flex; gap:20px; margin-bottom:20px; flex-wrap: wrap;">
-              <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
-                <h3>CHKO Current Stock (CROD, {current_date_str})</h3><p style="font-size:1.5em;">{stock_summary['CHKO']['current']:.2f} NOS</p>
+            <div style="margin-bottom:20px;" class="{alert_class}">
+              <h2>Total CROD Stock</h2>
+              <div style="display:flex; gap:20px; flex-wrap: wrap;">
+                <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                  <h3>Total Current Stock ({current_date_str})</h3><p style="font-size:1.5em;">{total_current:.2f} NOS</p>
+                </div>
+                <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                  <h3>Total Yesterday's Stock ({yesterday_date_str})</h3><p style="font-size:1.5em;">{total_yesterday:.2f} NOS</p>
+                </div>
+                <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                  <h3>Total Previous Stock</h3><p style="font-size:1.5em;">{total_previous:.2f} NOS</p>
+                </div>
               </div>
-              <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
-                <h3>CHKO Yesterday's Stock (CROD, {yesterday_date_str})</h3><p style="font-size:1.5em;">{stock_summary['CHKO']['yesterday']:.2f} NOS</p>
+            </div>
+            <div style="display:flex; gap:40px; flex-wrap: wrap;">
+              <div style="flex:1; min-width:300px;">
+                <h2>CHKO Stock</h2>
+                <div style="display:flex; gap:20px; flex-wrap: wrap;">
+                  <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                    <h3>Current ({current_date_str})</h3><p style="font-size:1.5em;">{stock_summary['CHKO']['current']:.2f} NOS</p>
+                    <p>Ready to Dispatch: {stock_summary['CHKO']['current_unrestricted']:.2f} NOS</p>
+                  </div>
+                  <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                    <h3>Yesterday ({yesterday_date_str})</h3><p style="font-size:1.5em;">{stock_summary['CHKO']['yesterday']:.2f} NOS</p>
+                    <p>Ready to Dispatch: {stock_summary['CHKO']['yesterday_unrestricted']:.2f} NOS</p>
+                  </div>
+                  <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                    <h3>Previous</h3><p style="font-size:1.5em;">{stock_summary['CHKO']['previous']:.2f} NOS</p>
+                  </div>
+                </div>
               </div>
-              <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
-                <h3>CHKO Previous Stock (CROD)</h3><p style="font-size:1.5em;">{stock_summary['CHKO']['previous']:.2f} NOS</p>
-              </div>
-              <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
-                <h3>CHKI Current Stock (CROD, {current_date_str})</h3><p style="font-size:1.5em;">{stock_summary['CHKI']['current']:.2f} NOS</p>
-              </div>
-              <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
-                <h3>CHKI Yesterday's Stock (CROD, {yesterday_date_str})</h3><p style="font-size:1.5em;">{stock_summary['CHKI']['yesterday']:.2f} NOS</p>
-              </div>
-              <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
-                <h3>CHKI Previous Stock (CROD)</h3><p style="font-size:1.5em;">{stock_summary['CHKI']['previous']:.2f} NOS</p>
+              <div style="flex:1; min-width:300px;">
+                <h2>CHKI Stock</h2>
+                <div style="display:flex; gap:20px; flex-wrap: wrap;">
+                  <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                    <h3>Current ({current_date_str})</h3><p style="font-size:1.5em;">{stock_summary['CHKI']['current']:.2f} NOS</p>
+                    <p>Ready to Dispatch: {stock_summary['CHKI']['current_unrestricted']:.2f} NOS</p>
+                  </div>
+                  <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                    <h3>Yesterday ({yesterday_date_str})</h3><p style="font-size:1.5em;">{stock_summary['CHKI']['yesterday']:.2f} NOS</p>
+                    <p>Ready to Dispatch: {stock_summary['CHKI']['yesterday_unrestricted']:.2f} NOS</p>
+                  </div>
+                  <div style="flex:1; background:#fafafa; padding:15px; border-radius:8px; box-shadow:2px 2px 5px rgba(0,0,0,0.1); min-width:200px;">
+                    <h3>Previous</h3><p style="font-size:1.5em;">{stock_summary['CHKI']['previous']:.2f} NOS</p>
+                  </div>
+                </div>
               </div>
             </div>
             """,

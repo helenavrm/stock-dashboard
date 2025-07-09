@@ -5,8 +5,11 @@ from datetime import datetime, timedelta
 
 def summarize_stock(df: pd.DataFrame) -> dict:
     """
-    Summarize total stock quantities for CHKO and CHKI in CROD, split by current, yesterday's, and previous stock.
-    Current stock is for the current system date; yesterday's stock is for the previous day; previous stock is before that.
+    Summarize total stock quantities and unrestricted FG quantities for CHKO and CHKI in CROD,
+    split by current, yesterday's, and previous stock.
+    Current stock is for the current system date; yesterday's stock is for the previous day;
+    previous stock is before that.
+    Unrestricted FGs are those with Stock Type 'DU' or 'EU'.
     """
     # Ensure data is filtered for CROD
     df_crod = df[df["Storage BIN"] == "CROD"].copy()
@@ -20,22 +23,33 @@ def summarize_stock(df: pd.DataFrame) -> dict:
     df_yesterday = df_crod[df_crod["GR Date"].dt.date == yesterday_date.date()].copy()
     df_previous = df_crod[df_crod["GR Date"].dt.date < yesterday_date.date()].copy()
     
-    # Group by warehouse and sum quantities
+    # Define unrestricted stock types
+    unrestricted_types = ["DU", "EU"]
+    
+    # Group by warehouse and sum quantities (total and unrestricted)
     current_summary = df_current.groupby("EWM WH")["Available Qty"].sum().to_dict()
     yesterday_summary = df_yesterday.groupby("EWM WH")["Available Qty"].sum().to_dict()
     previous_summary = df_previous.groupby("EWM WH")["Available Qty"].sum().to_dict()
+    
+    # Calculate unrestricted FG quantities
+    current_unrestricted = df_current[df_current["Stock Type"].isin(unrestricted_types)].groupby("EWM WH")["Available Qty"].sum().to_dict()
+    yesterday_unrestricted = df_yesterday[df_yesterday["Stock Type"].isin(unrestricted_types)].groupby("EWM WH")["Available Qty"].sum().to_dict()
     
     # Ensure both CHKO and CHKI are present, default to 0 if missing
     return {
         "CHKO": {
             "current": current_summary.get("CHKO", 0.0),
             "yesterday": yesterday_summary.get("CHKO", 0.0),
-            "previous": previous_summary.get("CHKO", 0.0)
+            "previous": previous_summary.get("CHKO", 0.0),
+            "current_unrestricted": current_unrestricted.get("CHKO", 0.0),
+            "yesterday_unrestricted": yesterday_unrestricted.get("CHKO", 0.0)
         },
         "CHKI": {
             "current": current_summary.get("CHKI", 0.0),
             "yesterday": yesterday_summary.get("CHKI", 0.0),
-            "previous": previous_summary.get("CHKI", 0.0)
+            "previous": previous_summary.get("CHKI", 0.0),
+            "current_unrestricted": current_unrestricted.get("CHKI", 0.0),
+            "yesterday_unrestricted": yesterday_unrestricted.get("CHKI", 0.0)
         }
     }
 
