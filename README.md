@@ -1,2 +1,2 @@
 # stock-dashboard
-Stock dashboard Atomberg
+Stock dashboard 
